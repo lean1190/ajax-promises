@@ -28,25 +28,25 @@
             // It's useful to do all your promise-related work inside the promise constructor callback, so errors are automatically caught and become
             // rejections. The same goes for errors thrown in "then" callbacks.
             ajaxp.getJSON('resources/content.json').then(function (response) {
-                console.log("Yey JSON!", response);
+                console.log("GET request: Yey JSON!", response);
                 document.getElementById("hey").innerHTML = response.hey;
             });
 
             ajaxp.getJSON('resources/no-content.json').then(function (response) {
                 console.log("Not here", response);
             }).catch(function (error) {
-                console.log("Too bad, but it's ok", error);
+                console.log("FAILED GET: Too bad, but it's ok", error);
                 document.getElementById("fail").innerHTML = "This one failed :(";
             });
 
             ajaxp.ajax('resources/content.json', {}, 'GET', true).then(function (response) {
-                console.log("Coming back from generic AJAX call!, RAW JSON", response);
+                console.log("AJAX generic request: Coming back from generic AJAX call!, RAW JSON", response);
                 document.getElementById("generic").innerHTML = "<h1>Check out the console!</h1>";
             });
 
             document.getElementById("trypost").addEventListener("click", function () {
                 ajaxp.post('php/postcheck.php', {}).then(function (response) {
-                    console.log("It worked!", response);
+                    console.log("POST request: It worked!", response);
                 }).catch(function (error) {
                     console.log("Oh noes :(", error);
                 }).then(function (response) {
