@@ -5,6 +5,7 @@
     <meta http-equiv="Content-Language" content="en" />
     <meta name="description" content="Simple AJAX promises for javascript">
     <meta name="keywords" content="HTML,CSS,XML,JavaScript,AJAX,PROMISE,SIMPLE,EASY,LIGHT,GITHUB">
+
     <!-- https://github.com/leito9008 -->
     <meta name="author" content="Leandro Nicolás Vilas">
 
@@ -32,25 +33,36 @@
                 document.getElementById("hey").innerHTML = response.hey;
             });
 
-            ajaxp.getJSON('resources/no-content.json').then(function (response) {
+            ajaxp.getJSON('resources/not-found404.json').then(function (response) {
                 console.log("Not here", response);
             }).catch(function (error) {
                 console.log("FAILED GET: Too bad, but it's ok", error);
                 document.getElementById("fail").innerHTML = "This one failed :(";
             });
 
-            ajaxp.ajax('resources/content.json', {}, 'GET', true).then(function (response) {
+            ajaxp.get('server/server.php', {
+                paramone: 'get param one',
+                paramtwo: 'nice param two here'
+            }).then(function (response) {
+                console.log("Get with params here!", response);
+            }).catch(function (error) {
+                console.log("FAILED GET", error);
+            });
+
+            ajaxp.ajax('resources/content.json', {}, 'GET').then(function (response) {
                 console.log("AJAX generic request: Coming back from generic AJAX call!, RAW JSON", response);
                 document.getElementById("generic").innerHTML = "<h1>Check out the console!</h1>";
             });
 
             document.getElementById("trypost").addEventListener("click", function () {
-                ajaxp.post('php/postcheck.php', {}).then(function (response) {
+                ajaxp.post('server/server.php', {
+                    paramone: 'param one for post',
+                    paramtwo: 'okey another one'
+                }).then(function (response) {
                     console.log("POST request: It worked!", response);
+                    document.getElementById("postresult").innerHTML = "<h3>Done! POST result: </h3>" + response;
                 }).catch(function (error) {
                     console.log("Oh noes :(", error);
-                }).then(function (response) {
-                    document.getElementById("postresult").innerHTML = "<h3>Done! POST result: </h3></br>" + response;
                 });
             });
         }());

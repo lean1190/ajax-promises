@@ -1,0 +1,1 @@
+<?php if(isset($_POST[ 'paramone'])) { echo "Here's the response to your POST request\n"; echo "Param one:".$_POST[ 'paramone']. "\nAaaaand param two:".$_POST[ 'paramtwo']; } else if(isset($_GET[ 'paramone'])){ echo "Here's the response to your GET request\n"; echo "Param one:".$_GET[ 'paramone']. "\nAaaaand param two:".$_GET[ 'paramtwo']; }

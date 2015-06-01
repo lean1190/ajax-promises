@@ -1,120 +1,92 @@
 /* globals Promise, XMLHttpRequest, console */
 
-/* Inspired by http://www.html5rocks.com/en/tutorials/es6/promises/ */
+/* Thanks to and inspired by http://www.html5rocks.com/en/tutorials/es6/promises/ */
 
 // Declare the module
 var ajaxp = ajaxp || (function () {
     'use strict';
 
-    // Create the object
+    // Create the main object that will be imported
     var trueajaxp = trueajaxp || {};
 
-    // GET Request
-    function _doGet(url) {
-        return _doAjax(url, {}, 'GET', true);
-        /*new Promise(function (resolve, reject) {
-            // Do the usual XHR stuff
-            var req = new XMLHttpRequest();
-            req.open('GET', url, true);
+    // Create a helper object to work with strings mainly
+    var helper = {};
 
-            req.onload = function () {
-                // This is called even on 404 etc
-                // so check the status
-                if (req.status == 200) {
-                    // Resolve the promise with the response text
-                    resolve(req.response);
-                } else {
-                    // Otherwise reject with the status text
-                    // which will hopefully be a meaningful error
-                    reject(Error(req.statusText));
-                }
-            };
+    // Check if the object has a property, if so returns true
+    helper.isEmptyObject = function (object) {
+        for (var property in object) {
+            if (object.hasOwnProperty(property)) {
+                return false;
+            }
+        }
 
-            // Handle network errors
-            req.onerror = function () {
-                reject(Error("Network Error"));
-            };
+        return true;
+    };
 
-            // Make the request
-            req.send();
-        });*/
-    }
+    // Check if a variable is empty, null, undefined or blank .
+    helper.isEmpty = function (variable) {
+        return (variable === null || typeof variable === "undefined" || variable === {} || this.isEmptyObject(variable) || variable === "");
+    };
 
-    // GET Request JSON parsed
-    function _doGetJSON(url) {
-        return _doGet(url).then(JSON.parse).catch(function (err) {
-            console.log("getJSON failed for", url, err);
+    // Check if 2 strings are equals
+    helper.isStringEquals = function (firstString, secondString) {
+        return firstString.toUpperCase() === secondString.toUpperCase();
+    };
+
+    // Cut the last character from a string
+    helper.cutLastChar = function (string) {
+        return string.slice(0, -1);
+    };
+
+    // Transform a request parameter json object to string
+    helper.paramsToString = function (paramsObject) {
+        var stringParams = "";
+        for (var property in paramsObject) {
+            if (paramsObject.hasOwnProperty(property)) {
+                stringParams += property + "=" + paramsObject[property] + "&";
+            }
+        }
+
+        // Cut last & character
+        return (this.cutLastChar(stringParams)).trim();
+    };
+
+    // AJAX generic JSON parsed request
+    function _doAjaxJSON(url, params, method, async) {
+        return _doAjax(url, params, method, async).then(JSON.parse).catch(function (err) {
+            console.log("JSON parsing failed for", url, err);
             throw err;
         });
     }
 
-    // POST Request
-    function _doPost(url, params) {
-        return _doAjax(url, params, 'POST', true);
-        /*new Promise(function (resolve, reject) {
-            // Do the usual XHR stuff
-            var req = new XMLHttpRequest();
-            req.open('POST', url, true);
-
-            //Send the proper header information along with the request
-            req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-            //req.setRequestHeader("Content-length", params.length);
-            //req.setRequestHeader("Connection", "close");
-
-            req.onload = function () {
-                // This is called even on 404 etc
-                // so check the status
-                if (req.status == 200) {
-                    // Resolve the promise with the response text
-                    resolve(req.response);
-                } else {
-                    // Otherwise reject with the status text
-                    // which will hopefully be a meaningful error
-                    reject(Error(req.statusText));
-                }
-            };
-
-            // Handle network errors
-            req.onerror = function () {
-                reject(Error("Network Error"));
-            };
-
-            // Make the request
-            req.send(params);
-        });*/
-    }
-
-    // POST Request JSON parsed
-    function _doPostJSON(url, params) {
-        return _doPost(url, params).then(JSON.parse).catch(function (err) {
-            console.log("postJSON failed for", url, err);
-            throw err;
-        });
-    }
-
-    // PUT Request
-    function _doPut(url, params) {
-        return _doAjax(url, params, 'PUT', true);
-    }
-
-    // DELETE Request
-    function _doDelete(url, params) {
-        return _doAjax(url, params, 'DELETE', true);
-    }
-
-    // AJAX Generic Request
+    // AJAX generic request
     function _doAjax(url, params, method, async) {
         return new Promise(function (resolve, reject) {
+            var stringParams = "";
 
-            // Default value true
+            // Set the params to empty if nothing there
+            params = params || {};
+
+            // Default value true, so it's not required
             async = async || true;
+
+            // If there are params, then transform them
+            if (!helper.isEmpty(params)) {
+                stringParams = helper.paramsToString(params);
+
+                // If GET, must attach the params to the url
+                if (helper.isStringEquals(method, "GET")) {
+                    url += "?" + stringParams;
+                }
+            }
 
             // Do the usual XHR stuff
             var req = new XMLHttpRequest();
             req.open(method, url, async);
 
-            if (method.toUpperCase() === "POST") {
-                //Send the proper header information along with the request
+            // If not a GET request, set the proper header
+            if (!helper.isStringEquals(method, "GET")) {
+                // Send the proper header information along with the request
                 req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
             }
 
@@ -137,7 +109,7 @@ var ajaxp = ajaxp || (function () {
             };
 
             // Make the request
-            req.send(params);
+            req.send(stringParams);
         });
     }
 
@@ -145,30 +117,47 @@ var ajaxp = ajaxp || (function () {
         return _doAjax(url, params, method, async);
     };
 
-    trueajaxp.get = function (url) {
-        return _doGet(url);
+    // GET request
+    trueajaxp.get = function (url, params) {
+        return _doAjax(url, params, 'GET', true);
     };
 
-    trueajaxp.getJSON = function (url) {
-        return _doGetJSON(url);
-    };
-
+    // POST request
     trueajaxp.post = function (url, params) {
-        return _doPost(url, params);
+        return _doAjax(url, params, 'POST', true);
     };
 
-    trueajaxp.postJSON = function (url, params) {
-        return _doPostJSON(url, params);
-    };
-
+    // PUT request
     trueajaxp.put = function (url, params) {
-        return _doPut(url, params);
+        return _doAjax(url, params, 'PUT', true);
     };
 
+    // DELETE request
     trueajaxp.delete = function (url, params) {
-        return _doDelete(url, params);
+        return _doAjax(url, params, 'DELETE', true);
     };
 
+    // GET JSON parsed request
+    trueajaxp.getJSON = function (url, params) {
+        return _doAjaxJSON(url, params, 'GET', true);
+    };
+
+    // POST JSON parsed request
+    trueajaxp.postJSON = function (url, params) {
+        return _doAjaxJSON(url, params, 'POST', true);
+    };
+
+    // PUT JSON parsed request
+    trueajaxp.putJSON = function (url, params) {
+        return _doAjaxJSON(url, params, 'PUT', true);
+    };
+
+    // DELETE JSON parsed request
+    trueajaxp.deleteJSON = function (url, params) {
+        return _doAjaxJSON(url, params, 'DELETE', true);
+    };
+
+    // Return the fulfilled object
     return trueajaxp;
 
 }());
